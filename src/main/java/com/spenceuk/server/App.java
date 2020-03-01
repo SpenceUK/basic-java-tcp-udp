@@ -54,7 +54,7 @@ class ExchangeHandler implements Runnable {
           pw.println("HTTP/1.1 200 SUCCESS"); // status line
           pw.println("Content-Type: text/plain"); // headers
           pw.println("\r\n"); // required between headers and body
-          pw.println("Hello"); // body
+          pw.println("Hello world"); // body
           pw.println("\r\n"); // end of body
           System.out.printf("[conn-%s] Response Sent\n", id);
         }
