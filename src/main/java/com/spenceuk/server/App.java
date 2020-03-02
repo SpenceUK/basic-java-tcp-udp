@@ -2,15 +2,15 @@ package com.spenceuk.server;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.nio.charset.StandardCharsets;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class App {
-  public static void main(String[] args) throws SocketException {
-    DatagramSocket socket = new DatagramSocket(9090);
+  public static void main(String[] args) throws IOException {
+    MulticastSocket socket = new MulticastSocket(9091);
     Thread msgServerThread = new Thread(new DatagramMessageSender(socket));
     msgServerThread.start();
     while (true) {}
@@ -24,29 +24,27 @@ class DatagramMessageSender implements Runnable {
     "..Datagram packets",
     "Instead of Memes"
   );
-  private DatagramSocket socket;
-  private byte[] buffer = new byte[256];
-  private DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+  private MulticastSocket socket;
   private DatagramPacket response;
-  private int sent = 0;
 
-  public DatagramMessageSender(DatagramSocket socket) {
+  public DatagramMessageSender(MulticastSocket socket) {
     this.socket = socket;
   }
 
   @Override
   public void run() {
     try {
-      socket.receive(packet);
-      String msg = new String(packet.getData(), StandardCharsets.UTF_8);
-      System.out.printf("Received: [%s:%s] - %s", packet.getAddress(), packet.getPort(), msg);
-      while (sent < messages.size()) {
-        byte[] messageBuffer = messages.get(sent).getBytes();
-        response = new DatagramPacket(messageBuffer, messageBuffer.length, packet.getAddress(), packet.getPort());
+      System.out.println("Broadcasting");
+      InetAddress group = InetAddress.getByName("224.0.0.1");
+      while (true) {
+        Thread.sleep(1_000);
+        int random = new Random().nextInt(4);
+        System.out.println("Sending ...");
+        byte[] messageBuffer = messages.get(random).getBytes();
+        response = new DatagramPacket(messageBuffer, messageBuffer.length, group, 9091);
         socket.send(response);
-        sent++;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       System.out.println(e.getLocalizedMessage());
     }
   }
